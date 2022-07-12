@@ -72,7 +72,10 @@ def draw(line):
             # 1 -> 0
             # 0.5 -> 1
             for confidence in points_array[:, 2]:
-                colour = [confidence, 0, 1 - confidence]
+                r = max(0, confidence - 0.5) * 2
+                g = (0.5 - abs(0.5 - confidence)) * 2
+                b = max(0, 0.5 - confidence) * 2
+                colour = [r, g, b]
                 colours.append(colour)
         else:
             colours = ["black"] * len(points_array)
@@ -97,21 +100,6 @@ def draw(line):
     
     animation = FuncAnimation(figure, step, frames=len(gathered_points), interval=100, repeat=False, init_func=lambda *args, **kwargs: None)
 
-
-
-    # for points_set in gathered_points:
-    #     xs, ys, colours = points_set
-    #     # if type(colours) is list:
-    #     #     args = np.array([xs, ys]).T
-    #     # else:
-    #     args = np.array([xs, ys]).T
-    #     print(args)
-    #     for i in range(len(args)):
-    #         # plt.clf()
-    #         plt.scatter(args[i, 0], args[i, 1])
-    #         # if i % 10 == 0:
-    #         #     plt.pause(0.1)
-      
     if line:
         line_array = np.array(line)
         plt.plot(line_array[:, 0], line_array[:, 1], c="c")

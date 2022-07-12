@@ -105,8 +105,9 @@ class NeuralNetwork:
 if __name__ == "__main__":
     points = create_points()
     line = create_line()
-    line[0] = 0, 0
+    
     training = label_points(line, points[:200])
+    display(training, line=line)
     testing = points[200:]
 
     nn = NeuralNetwork(NeuralNetwork.sigmoid_activation)
