@@ -24,40 +24,53 @@ class Display:
         line = self.drawing.line(
             (start[0]*pct, start[1]*pct),
             (end[0]*pct, end[1]*pct),
-            # tuple(map(pct, start)),
-            # tuple(map(pct, end)),
-            stroke="white", stroke_width=4, stroke_linecap="round"
+            stroke="white", stroke_width=4, stroke_linecap="square"
         )
         if lifetime:
             time = f"{lifetime}s"
-            # begin_time = str(lifetime) + "s"
             line.add(self.drawing.animate("opacity", values=[1, 0], begin=time, dur="0.25s", fill="freeze"))
         self.drawing.add(line)
+    
+    def draw_square(self, start, appears, disappears):
+        rect = self.drawing.rect(
+            ((start[0] + self.cell_width * 0.2) *pct, (start[1] + self.cell_height * 0.2) *pct),
+            (self.cell_width * 0.6 * pct, self.cell_height  * 0.6 * pct),
+            fill="orange", opacity=0
+        )
+        time = f"{appears}s"
+        end = f"{disappears}s"
+        rect.add(self.drawing.animate("opacity", values=[0, 1], begin=time, dur="0.25s", fill="freeze"))
+        rect.add(self.drawing.animate("opacity", values=[1, 0], begin=end, dur="0.25s", fill="freeze"))
+        self.drawing.add(rect)
 
     def draw_grid(self):
-        cell_width = (100 - self.padding * 2) / self.columns
-        cell_height = (100 - self.padding * 2) / self.rows
+        self.cell_width = (100 - self.padding * 2) / self.columns
+        self.cell_height = (100 - self.padding * 2) / self.rows
 
         walls_removed = list(self.maze.generator)
 
         for row in range(self.rows):
             for column in range(self.columns):
-                x = self.padding + cell_width * column
-                y = self.padding + cell_height * row
+                x = self.padding + self.cell_width * column
+                y = self.padding + self.cell_height * row
                 cell = self.maze.grid[row][column]
                 top_left = x, y
-                top_right = x + cell_width, y
-                bottom_left = x, y + cell_height
-                bottom_right = x + cell_width, y + cell_height
+                top_right = x + self.cell_width, y
+                bottom_left = x, y + self.cell_height
+                bottom_right = x + self.cell_width, y + self.cell_height
                 
                 line_data = zip(
                     ("up", "right", "down", "left"),
                     (top_left, top_right, bottom_right, bottom_left),
                     (top_right, bottom_right, bottom_left, top_left)
                 )
+                
                 for direction, start, end in line_data:
                     if not cell[direction]:
-                        lifetime = random.random() * 5 + 1
+                        for i, walls in enumerate(walls_removed):
+                            if len(walls) > 1 and (column, row, direction) in walls:
+                                lifetime = 5 / len(walls_removed) * i + 1
+                                self.draw_square(top_left, lifetime, 9999)
                     else:
                         lifetime = None
                     self.draw_line(start, end, lifetime)
@@ -121,7 +134,7 @@ class Maze:
                 return (x, y, direction), (*next_position, opposite)
             else:
                 # Run when in dead-end, no possible neighbours
-                pass
+                return (x, y)
 
     def valid_cell(self, x, y):    # Predicate function
         # Check if y is between 0 and number of rows
